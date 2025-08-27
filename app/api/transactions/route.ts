@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
    
     const endpoint = `/api/en/transaction/find-by-user`;
-    const url = `${BASE_URL}${endpoint}`;
+    const url = `${BASE_URL}${endpoint}?page=${page}`;
 
     const timestamp = (Date.now() * 1000).toString();
     const signature = signRequest(timestamp, "GET", endpoint, "");
