@@ -87,45 +87,51 @@ export default function TransactionsPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Transactions Dashboard</h1>
 
-       
-      <div className="flex gap-2 mb-4">
+      {/* Search */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <Input
           placeholder="Search by sender, receiver, cause, or ID"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          className="flex-1"
         />
-        <Button onClick={searchTransactions} className="cursor-pointer">Search</Button>
+        <Button
+          onClick={searchTransactions}
+          className="cursor-pointer w-full sm:w-auto"
+        >
+          Search
+        </Button>
       </div>
 
+      {/* Table */}
       <Card>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="h-10 w-10 animate-spin text-gray-500" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Sender</TableHead>
-                  <TableHead>Receiver</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Currency</TableHead>
-                  <TableHead>Cause</TableHead>
-                  <TableHead>Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <table className="min-w-[700px] w-full table-auto">
+              <thead>
+                <tr>
+                  <th className="px-2 py-1 text-left">ID</th>
+                  <th className="px-2 py-1 text-left">Sender</th>
+                  <th className="px-2 py-1 text-left">Receiver</th>
+                  <th className="px-2 py-1 text-left">Amount</th>
+                  <th className="px-2 py-1 text-left">Currency</th>
+                  <th className="px-2 py-1 text-left">Cause</th>
+                  <th className="px-2 py-1 text-left">Created At</th>
+                </tr>
+              </thead>
+              <tbody>
                 {transactions.map((tx) => {
                   const senderAcc = getAccount(tx.sender);
                   const receiverAcc = getAccount(tx.receiver);
-
                   const incoming =
                     receiverAcc === "CURRENT_USER" || senderAcc === receiverAcc;
 
                   return (
-                    <TableRow
+                    <tr
                       key={tx.id}
                       className={
                         incoming
@@ -133,46 +139,38 @@ export default function TransactionsPage() {
                           : "bg-red-100 hover:bg-red-200"
                       }
                     >
-                      <TableCell>{tx.id}</TableCell>
-                      <TableCell>{renderParty(tx.sender)}</TableCell>
-                      <TableCell>{renderParty(tx.receiver)}</TableCell>
-                      <TableCell>{tx.amount}</TableCell>
-                      <TableCell>{tx.currency}</TableCell>
-                      <TableCell>{tx.cause}</TableCell>
-                      <TableCell>
+                      <td className="px-2 py-1">{tx.id}</td>
+                      <td className="px-2 py-1">{renderParty(tx.sender)}</td>
+                      <td className="px-2 py-1">{renderParty(tx.receiver)}</td>
+                      <td className="px-2 py-1">{tx.amount}</td>
+                      <td className="px-2 py-1">{tx.currency}</td>
+                      <td className="px-2 py-1">{tx.cause}</td>
+                      <td className="px-2 py-1">
                         {(() => {
                           const raw = tx.createdAt;
-
                           if (/^\d+$/.test(raw)) {
-                            
                             let timestamp: number;
-                            if (raw.length > 13) {
-                            
+                            if (raw.length > 13)
                               timestamp = parseInt(raw.slice(0, 13));
-                            } else if (raw.length === 10) {
-                              
+                            else if (raw.length === 10)
                               timestamp = parseInt(raw) * 1000;
-                            } else {
-                              timestamp = parseInt(raw);
-                            }
+                            else timestamp = parseInt(raw);
                             return new Date(timestamp).toLocaleString();
                           }
-
-                           
                           return new Date(raw).toLocaleString();
                         })()}
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           )}
         </CardContent>
       </Card>
 
       {/* Pagination */}
-      <div className="flex justify-end mt-4 items-center gap-2">
+      <div className="flex justify-end mt-4 items-center gap-2 flex-wrap">
         <Button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1 || loading}
@@ -183,9 +181,12 @@ export default function TransactionsPage() {
 
         <span className="px-4 py-2">Page {page}</span>
 
-        <Button onClick={() => setPage((p) => p + 1)} disabled={loading}
-            className="cursor-pointer">
-          Next
+        <Button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={loading}
+          className="cursor-pointer"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Next"}
         </Button>
       </div>
     </div>
