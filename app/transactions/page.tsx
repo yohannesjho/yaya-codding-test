@@ -72,13 +72,13 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, [page]);
 
-  // helper to render party (string or object)
+   
   const renderParty = (party: string | Party) => {
     if (typeof party === "string") return party;
     return `${party?.name ?? ""} (${party?.account ?? ""})`;
   };
 
-  // helper to get account (string if string, or .account if object)
+   
   const getAccount = (party: string | Party) => {
     return typeof party === "string" ? party : party?.account ?? "";
   };
@@ -87,14 +87,14 @@ export default function TransactionsPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Transactions Dashboard</h1>
 
-      {/* Search */}
+       
       <div className="flex gap-2 mb-4">
         <Input
           placeholder="Search by sender, receiver, cause, or ID"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Button onClick={searchTransactions}>Search</Button>
+        <Button onClick={searchTransactions} className="cursor-pointer">Search</Button>
       </div>
 
       <Card>
@@ -144,13 +144,13 @@ export default function TransactionsPage() {
                           const raw = tx.createdAt;
 
                           if (/^\d+$/.test(raw)) {
-                            // raw is digits only → timestamp
+                            
                             let timestamp: number;
                             if (raw.length > 13) {
-                              // microseconds → trim to ms
+                            
                               timestamp = parseInt(raw.slice(0, 13));
                             } else if (raw.length === 10) {
-                              // seconds → convert to ms
+                              
                               timestamp = parseInt(raw) * 1000;
                             } else {
                               timestamp = parseInt(raw);
@@ -158,7 +158,7 @@ export default function TransactionsPage() {
                             return new Date(timestamp).toLocaleString();
                           }
 
-                          // Assume ISO string
+                           
                           return new Date(raw).toLocaleString();
                         })()}
                       </TableCell>
@@ -185,7 +185,7 @@ export default function TransactionsPage() {
 
         <Button onClick={() => setPage((p) => p + 1)} disabled={loading}
             className="cursor-pointer">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Next"}
+          Next
         </Button>
       </div>
     </div>
