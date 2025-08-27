@@ -17,26 +17,31 @@ function signRequest(
   return hmac.digest("base64");
 }
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const page = searchParams.get("p") || "2";
+    const body = await req.json();
+    const query = body.query || "";
 
-   
-    const endpoint = `/api/en/transaction/find-by-user`;
-    const url = `${BASE_URL}${endpoint}?page=${page}`;
+    const endpoint = "/api/en/transaction/search";
+    const url = `${BASE_URL}${endpoint}`;
 
     const timestamp = (Date.now() * 1000).toString();
-    const signature = signRequest(timestamp, "GET", endpoint, "");
+    const signature = signRequest(
+      timestamp,
+      "POST",
+      endpoint,
+      JSON.stringify({ query })
+    );
 
     const res = await fetch(url, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         "YAYA-API-KEY": API_KEY,
         "YAYA-API-TIMESTAMP": timestamp,
         "YAYA-API-SIGN": signature,
       },
+      body: JSON.stringify({ query }),
     });
 
     if (!res.ok) {
@@ -51,7 +56,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json(
-      { error: "Failed to fetch transactions", details: err.message },
+      { error: "Failed to search transactions", details: err.message },
       { status: 500 }
     );
   }
