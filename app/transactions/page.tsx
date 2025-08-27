@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+
 import {
   Table,
   TableBody,
@@ -13,10 +15,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface Party {
+  name?: string;
+  account?: string;
+}
+
 interface Transaction {
   id: string;
-  sender: string;
-  receiver: string;
+  sender: string | Party;
+  receiver: string | Party;
   amount: number;
   currency: string;
   cause: string;
@@ -65,6 +72,17 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, [page]);
 
+  // helper to render party (string or object)
+  const renderParty = (party: string | Party) => {
+    if (typeof party === "string") return party;
+    return `${party?.name ?? ""} (${party?.account ?? ""})`;
+  };
+
+  // helper to get account (string if string, or .account if object)
+  const getAccount = (party: string | Party) => {
+    return typeof party === "string" ? party : party?.account ?? "";
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Transactions Dashboard</h1>
@@ -82,7 +100,9 @@ export default function TransactionsPage() {
       <Card>
         <CardContent>
           {loading ? (
-            <p>Loading...</p>
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-10 w-10 animate-spin text-gray-500" />
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -98,8 +118,12 @@ export default function TransactionsPage() {
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => {
+                  const senderAcc = getAccount(tx.sender);
+                  const receiverAcc = getAccount(tx.receiver);
+
                   const incoming =
-                    tx.receiver === "CURRENT_USER" || tx.sender === tx.receiver;
+                    receiverAcc === "CURRENT_USER" || senderAcc === receiverAcc;
+
                   return (
                     <TableRow
                       key={tx.id}
@@ -110,13 +134,33 @@ export default function TransactionsPage() {
                       }
                     >
                       <TableCell>{tx.id}</TableCell>
-                      <TableCell>{tx.sender}</TableCell>
-                      <TableCell>{tx.receiver}</TableCell>
+                      <TableCell>{renderParty(tx.sender)}</TableCell>
+                      <TableCell>{renderParty(tx.receiver)}</TableCell>
                       <TableCell>{tx.amount}</TableCell>
                       <TableCell>{tx.currency}</TableCell>
                       <TableCell>{tx.cause}</TableCell>
                       <TableCell>
-                        {new Date(tx.createdAt).toLocaleString()}
+                        {(() => {
+                          const raw = tx.createdAt;
+
+                          if (/^\d+$/.test(raw)) {
+                            // raw is digits only → timestamp
+                            let timestamp: number;
+                            if (raw.length > 13) {
+                              // microseconds → trim to ms
+                              timestamp = parseInt(raw.slice(0, 13));
+                            } else if (raw.length === 10) {
+                              // seconds → convert to ms
+                              timestamp = parseInt(raw) * 1000;
+                            } else {
+                              timestamp = parseInt(raw);
+                            }
+                            return new Date(timestamp).toLocaleString();
+                          }
+
+                          // Assume ISO string
+                          return new Date(raw).toLocaleString();
+                        })()}
                       </TableCell>
                     </TableRow>
                   );
@@ -128,15 +172,21 @@ export default function TransactionsPage() {
       </Card>
 
       {/* Pagination */}
-      <div className="flex justify-between mt-4">
+      <div className="flex justify-end mt-4 items-center gap-2">
         <Button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
+          disabled={page === 1 || loading}
+          className="cursor-pointer"
         >
           Previous
         </Button>
+
         <span className="px-4 py-2">Page {page}</span>
-        <Button onClick={() => setPage((p) => p + 1)}>Next</Button>
+
+        <Button onClick={() => setPage((p) => p + 1)} disabled={loading}
+            className="cursor-pointer">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Next"}
+        </Button>
       </div>
     </div>
   );
